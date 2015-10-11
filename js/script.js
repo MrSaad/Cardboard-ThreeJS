@@ -3,6 +3,7 @@ $(document).ready(function(){
 	var camera, scene, renderer;
   var effect, controls;
   var element, container;
+  var cube, cubeVelocity = -1;
 
   var clock = new THREE.Clock();
 
@@ -13,6 +14,9 @@ $(document).ready(function(){
 
     //*** Renderer ***
     renderer = new THREE.WebGLRenderer();
+    renderer.shadowMapEnabled = true;
+    renderer.shadowMapSoft = true;
+
     element = renderer.domElement;
     container = document.getElementById('example');
     container.appendChild(element);
@@ -22,13 +26,43 @@ $(document).ready(function(){
     scene = new THREE.Scene();
 
     //*** Camera ***
-    camera = new THREE.PerspectiveCamera(90, 1, 0.001, 700);
-    camera.position.set(0, 10, 0);
+    camera = new THREE.PerspectiveCamera(90, 1, 1, 100000);
+    camera.position.set(-500, 50, 0);
+    camera.lookAt(new THREE.Vector3(1, 50, 0));
     scene.add(camera);
 
     //*** Light ***
-    var light = new THREE.HemisphereLight(0x777777, 0x000000, 0.6);
-    scene.add(light);
+    // var ambilight = new THREE.AmbientLight( 0x404040 ); // soft white light
+    // scene.add( ambilight );
+
+    var hemilight = new THREE.HemisphereLight(0x777777, 0x000000, 0.6);
+    scene.add(hemilight);
+
+    // var plight = new THREE.PointLight( 0xff0000, 1, 10, 1);
+    // plight.position.set( 50, 15, 0 );
+    // scene.add( plight );
+
+    light = new THREE.DirectionalLight(0xdfebff, 0.1);
+    light.position.set(300, 400, 50);
+    light.position.multiplyScalar(1.3);
+
+    light.castShadow = true;
+    light.onlyShadow=true;
+
+    light.shadowMapWidth = 512;
+    light.shadowMapHeight = 512;
+
+    var d = 200;
+
+    light.shadowCameraLeft = -d;
+    light.shadowCameraRight = d;
+    light.shadowCameraTop = d;
+    light.shadowCameraBottom = -d;
+
+    light.shadowCameraFar = 1000;
+    light.shadowDarkness = 0.5;
+
+    scene.add( light );
 
     //*** Controls ***
     window.addEventListener('deviceorientation', setOrientationControls, true);
@@ -72,8 +106,7 @@ $(document).ready(function(){
     texture.wrapT = THREE.RepeatWrapping;
     texture.repeat = new THREE.Vector2(50, 50);
     texture.anisotropy = renderer.getMaxAnisotropy();
-
-    //material/geometry
+    //material
     var material = new THREE.MeshPhongMaterial({
       color: 0xffffff,
       specular: 0xffffff,
@@ -81,12 +114,28 @@ $(document).ready(function(){
       shading: THREE.FlatShading,
       map: texture
     });
-    var geometry = new THREE.PlaneGeometry(1000, 1000);
+
+    //geometry
+    var geometry = new THREE.PlaneGeometry(2000, 2000);
 
     //mesh
     var mesh = new THREE.Mesh(geometry, material);
     mesh.rotation.x = -Math.PI / 2;
+    mesh.receiveShadow = true;
     scene.add(mesh);
+
+    //*** Test Objects ***
+    var cubeGeo = new THREE.BoxGeometry( 50, 50, 50 );
+    var cubeMaterial = new THREE.MeshPhongMaterial({
+      color: 0x00ff00,
+      specular: 0x00ff00,
+      shininess: 10,
+      shading: THREE.FlatShading,
+    });
+    cube = new THREE.Mesh( cubeGeo, cubeMaterial );
+    cube.position.set(10, 100, 0);
+    cube.castShadow = true;
+    scene.add( cube );
 
 
     //window resizing
@@ -108,8 +157,15 @@ $(document).ready(function(){
   function update(dt) {
     resize();
 
-    camera.updateProjectionMatrix();
+    //update objects
+    cube.rotation.x += 0.1;
+    cube.rotation.y += 0.1;
+    cube.position.y += cubeVelocity;
+    if(cube.position.y < 50 || cube.position.y+25 > 200){
+      cubeVelocity *= -1;
+    }
 
+    camera.updateProjectionMatrix();
     controls.update(dt);
   }
 
