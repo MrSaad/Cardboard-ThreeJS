@@ -4,6 +4,7 @@ $(document).ready(function(){
   var effect, controls;
   var element, container;
   var cube, cubeVelocity = -1;
+  var mosqueMesh;
   var loader;
 
   var clock = new THREE.Clock();
@@ -156,15 +157,16 @@ $(document).ready(function(){
       });
       
       // create a mesh with models geometry and material
-      var mesh = new THREE.Mesh(
+      mosqueMesh = new THREE.Mesh(
         geometry,
         material
       );
       
-      mesh.position.set(10, 100, 0);
-      mesh.rotation.y = -Math.PI/5;
+      mosqueMesh.position.set(10, 100, 0);
+      mosqueMesh.rotation.y = -Math.PI/5;
+      mosqueMesh.castShadow=true;
       
-      scene.add(mesh);
+      scene.add(mosqueMesh);
     });
 
 
@@ -188,6 +190,8 @@ $(document).ready(function(){
     resize();
 
     //update objects
+    mosqueMesh.rotation.y += 0.01;
+
     cube.rotation.x += 0.1;
     cube.rotation.y += 0.1;
     cube.position.y += cubeVelocity;
