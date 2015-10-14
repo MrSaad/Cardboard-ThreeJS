@@ -4,6 +4,7 @@ $(document).ready(function(){
   var effect, controls;
   var element, container;
   var cube, cubeVelocity = -1;
+  var loader;
 
   var clock = new THREE.Clock();
 
@@ -11,6 +12,9 @@ $(document).ready(function(){
   animate();
 
   function init() {
+
+    //*** Loader ***
+    loader = new THREE.JSONLoader(); // init the loader util
 
     //*** Renderer ***
     renderer = new THREE.WebGLRenderer();
@@ -27,7 +31,7 @@ $(document).ready(function(){
 
     //*** Camera ***
     camera = new THREE.PerspectiveCamera(90, 1, 1, 100000);
-    camera.position.set(-500, 50, 0);
+    camera.position.set(-1200, 500, 0);
     camera.lookAt(new THREE.Vector3(1, 50, 0));
     scene.add(camera);
 
@@ -130,12 +134,38 @@ $(document).ready(function(){
       color: 0x00ff00,
       specular: 0x00ff00,
       shininess: 10,
-      shading: THREE.FlatShading,
+      shading: THREE.FlatShading
     });
     cube = new THREE.Mesh( cubeGeo, cubeMaterial );
-    cube.position.set(10, 100, 0);
+    cube.position.set(100, 1000, 0);
     cube.castShadow = true;
     scene.add( cube );
+
+    // init loading
+    loader.load('outfile.js', function (geometry) {
+      // create a new material
+      var material = new THREE.MeshLambertMaterial({
+        color: 0xFFFFFF,
+        specular: 0xFFFFFF,
+        shininess: 10,
+        shading: THREE.FlatShading,
+        // map: THREE.ImageUtils.loadTexture('path_to_texture'),  // specify and load the texture
+        // colorAmbient: [0.480000026226044, 0.480000026226044, 0.480000026226044],
+        // colorDiffuse: [0.480000026226044, 0.480000026226044, 0.480000026226044],
+        // colorSpecular: [0.8999999761581421, 0.8999999761581421, 0.8999999761581421],
+      });
+      
+      // create a mesh with models geometry and material
+      var mesh = new THREE.Mesh(
+        geometry,
+        material
+      );
+      
+      mesh.position.set(10, 100, 0);
+      mesh.rotation.y = -Math.PI/5;
+      
+      scene.add(mesh);
+    });
 
 
     //window resizing
@@ -161,7 +191,7 @@ $(document).ready(function(){
     cube.rotation.x += 0.1;
     cube.rotation.y += 0.1;
     cube.position.y += cubeVelocity;
-    if(cube.position.y < 50 || cube.position.y+25 > 200){
+    if(cube.position.y < 900 || cube.position.y+25 > 1100){
       cubeVelocity *= -1;
     }
 
